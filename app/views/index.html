@@ -7,13 +7,15 @@
 <div class="govuk-grid-row">
   <div class="govuk-grid-column-two-thirds">
 
-    {% include "govuk-prototype-kit/includes/homepage-top.njk" %}
+    <h1 class="govuk-heading-l">Example Service</h1>
 
-    <h1 class="govuk-heading-xl">
-      {{ serviceName }}
-    </h1>
+    {% from "govuk/components/button/macro.njk" import govukButton %}
 
-    {% include "govuk-prototype-kit/includes/homepage-bottom.njk" %}
+{{ govukButton({
+  text: "Start now",
+  href: "num-adults",
+  isStartButton: true
+}) }}
   </div>
 </div>
 

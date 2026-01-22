@@ -1,0 +1,128 @@
+{% extends "layouts/main.html" %}
+
+{% block pageTitle %}
+Check your answers template – {{ serviceName }} – GOV.UK Prototype Kit
+{% endblock %}
+
+{% block beforeContent %}
+{{ govukBackLink({
+text: "Back",
+href: "javascript:window.history.back()"
+}) }}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds-from-desktop">
+
+    <h1 class="govuk-heading-xl">
+      Check your answers before sending your application
+    </h1>
+
+    <dl class="govuk-summary-list govuk-!-margin-bottom-9">
+
+
+      {% if (data['adults'] == "1 adult") %}
+      <div class="govuk-summary-list__row">
+        <dt class="govuk-summary-list__key">
+          Number of adults
+        </dt>
+        <dd class="govuk-summary-list__value">
+          {{ data['adults']}}</dd>
+
+        <dd class="govuk-summary-list__actions">
+          <a class="govuk-link" href="num-adults">Change<span class="govuk-visually-hidden"> name</span></a>
+        </dd>
+
+      </div>
+      <div class="govuk-summary-list__row">
+        <dt class="govuk-summary-list__key">
+          Adult name
+        </dt>
+        <dd class="govuk-summary-list__value">
+          {{ data['adult1name']}}</dd>
+
+        <dd class="govuk-summary-list__actions">
+          <a class="govuk-link" href="1adult">Change<span class="govuk-visually-hidden"> name</span></a>
+        </dd>
+
+      </div>
+      <div class="govuk-summary-list__row">
+        <dt class="govuk-summary-list__key">
+          Adult passport
+        </dt>
+        <dd class="govuk-summary-list__value">
+          {{ data['adult1passport']}}</dd>
+
+        <dd class="govuk-summary-list__actions">
+          <a class="govuk-link" href="1adult">Change<span class="govuk-visually-hidden"> name</span></a>
+        </dd>
+
+      </div>
+
+      {% elseif (data['adults'] == "2 adult") %}
+
+      <div class="govuk-summary-list__row">
+        <dt class="govuk-summary-list__key">
+          Number of adults
+        </dt>
+        <dd class="govuk-summary-list__value">
+          {{ data['adults']}}</dd>
+
+        <dd class="govuk-summary-list__actions">
+          <a class="govuk-link" href="num-adults">Change<span class="govuk-visually-hidden"> name</span></a>
+        </dd>
+
+      </div>
+ 
+
+ 
+      <div class="govuk-summary-list__row">
+        <dt class="govuk-summary-list__key">
+          Adult 1 passport
+        </dt>
+        <dd class="govuk-summary-list__value">
+          {{ data['adult1passport']}}</dd>
+
+        <dd class="govuk-summary-list__actions">
+          <a class="govuk-link" href="2adult">Change<span class="govuk-visually-hidden"> name</span></a>
+        </dd>
+
+      </div>
+      <div class="govuk-summary-list__row">
+        <dt class="govuk-summary-list__key">
+          Adult 2 passport
+        </dt>
+        <dd class="govuk-summary-list__value">
+          {{ data['adult2passport']}}</dd>
+
+        <dd class="govuk-summary-list__actions">
+          <a class="govuk-link" href="2adult">Change<span class="govuk-visually-hidden"> name</span></a>
+        </dd>
+
+      </div>
+
+      {% endif %}
+
+    </dl>
+
+    <h2 class="govuk-heading-m">
+      Now send your application
+    </h2>
+
+    <p>
+      By submitting this application you are confirming that, to the best of your knowledge, the details you are
+      providing are correct.
+    </p>
+
+    <form action="/confirmation" method="post" novalidate>
+
+      {{ govukButton({
+      text: "Accept and send"
+      }) }}
+
+    </form>
+
+  </div>
+</div>
+{% endblock %}
