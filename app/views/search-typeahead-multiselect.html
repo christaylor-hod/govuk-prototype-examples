@@ -5,7 +5,7 @@
 {% block content %}
 
 <div class="govuk-grid-row">
-  <div class="govuk-grid-column-two-thirds">
+  <div class="govuk-grid-column-full">
     <span class="govuk-caption-xl">Prototype component guidance</span>
     <h1 class="govuk-heading-l">Typeahead and multiselect components</h1>
 
@@ -21,8 +21,8 @@
       Test them with users and assistive technologies before using them in a live service.
     </div>
 
-    <h2 class="govuk-heading-l">Code to add</h2>
-    <p>Copy paste this code into your prototype and then add the relevant classes and attributes to your radio or checkbox component in order for it to work.</p>
+    <h2 class="govuk-heading-l">How to add to your prototype</h2>
+    <p>Copy paste this code into your prototype and then add the relevant classes and attributes to your existing radio or checkbox component in order for it to work.</p>
     <ol class="govuk-list govuk-list--number">
       <li>
         JS Code. <br/>Paste into your <code>application.js</code>, inside the <code>window.GOVUKPrototypeKit.documentReady</code>
@@ -35,7 +35,7 @@
           <div class="govuk-details__text">
             
               <br/><br/>
-            <pre>
+            <pre class="component-code">
 <code>
 /*
  * Reusable GOV.UK form enhancements
@@ -716,8 +716,9 @@
           </summary>
           <div class="govuk-details__text">
        
-              <pre>
+              <pre class="component-code">
                 <code>
+
 .enhanced-control--hidden {
   display: none;
 }
@@ -767,7 +768,7 @@
 
 .multiselect__dropdown-toggle {
   right: 2px;
-  border-left: 1px solid #b1b4b6;
+  border-left: 2px solid #000;
 }
 
 .multiselect__dropdown-toggle::before,
@@ -780,13 +781,23 @@
   border-right: 2px solid currentColor;
   border-bottom: 2px solid currentColor;
   transform: rotate(45deg);
+  margin-top: -5px;
+}
+
+.multiselect__filter-trigger-chevron::before {
+    margin-top: 10px!important;
 }
 
 .multiselect__dropdown-toggle[aria-expanded="true"]::before,
 .multiselect__filter-trigger[aria-expanded="true"]
   .multiselect__filter-trigger-chevron::before {
   transform: rotate(-135deg);
+  margin-top: 2px;
 }
+
+  .multiselect__filter-trigger-chevron::before {
+margin-top: 10px!important;
+  }
 
 /* Typeahead results */
 .typeahead__results {
@@ -800,6 +811,7 @@
   background: #ffffff;
   border: 2px solid #0b0c0c;
   border-top: 0;
+  margin-top: -30px;
 }
 
 .typeahead__results[hidden],
@@ -851,6 +863,7 @@
   background: #ffffff;
   border: 2px solid #0b0c0c;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  margin-top: -2px;
 }
 
 .multiselect__section-heading {
@@ -915,84 +928,7 @@
 
     </ol>
 
-    <h2 class="govuk-heading-l">Radio typeahead</h2>
-    <p class="govuk-body">
-      Add <code>js-typeahead</code> class to a GOV.UK radio component. With JavaScript disabled,
-      the full radio list remains available. With JavaScript enabled, the list becomes a
-      searchable single-select control.
-    </p>
-
-    <div class="component-example">
-      {{ govukRadios({
-        idPrefix: "demo-operation",
-        name: "demo[operation]",
-        classes: "js-typeahead",
-        attributes: {
-          "data-typeahead-label": "Search items",
-          "data-typeahead-placeholder": "Start typing an item name"
-        },
-        fieldset: {
-          legend: {
-            text: "Select an item",
-            classes: "govuk-fieldset__legend--m"
-          }
-        },
-        items: [
-          { text: "Item 1", value: "Item 1" },
-          { text: "Item 2", value: "Item 2" },
-          { text: "Item 3", value: "Item 3" },
-          { text: "Item 4", value: "Item 4" },
-          { text: "Item 5", value: "Item 5" }
-        ]
-      }) }}
-    </div>
-
-    <h3 class="govuk-heading-m">Implementation</h3>
-    <pre class="component-code"><code>
-      {{ '{{ govukRadios({
-        idPrefix: "demo-operation",
-        name: "demo[operation]",
-        classes: "js-typeahead",
-        attributes: {
-          "data-typeahead-label": "Search items",
-          "data-typeahead-placeholder": "Start typing an item name"
-        },
-        fieldset: {
-          legend: {
-            text: "Select an item",
-            classes: "govuk-fieldset__legend--m"
-          }
-        },
-        items: [
-          { text: "Item 1", value: "Item 1" },
-          { text: "Item 2", value: "Item 2" },
-          { text: "Item 3", value: "Item 3" },
-          { text: "Item 4", value: "Item 4" },
-          { text: "Item 5", value: "Item 5" }
-        ]
-      }) }}' | escape }}</code></pre>
-
-    <h3 class="govuk-heading-m">Typeahead options</h3>
-    {{ govukTable({
-      firstCellIsHeader: true,
-      head: [
-        { text: "Attribute" },
-        { text: "Purpose" },
-        { text: "Default" }
-      ],
-      rows: [
-        [
-          { text: "data-typeahead-label" },
-          { text: "Visible label for the generated search input." },
-          { text: "Search" }
-        ],
-        [
-          { text: "data-typeahead-placeholder" },
-          { text: "Optional placeholder text inside the search input." },
-          { text: "Search" }
-        ]
-      ]
-    }) }}
+   
 
     <h2 class="govuk-heading-l">Checkbox multiselect</h2>
     <p class="govuk-body">
@@ -1068,12 +1004,6 @@
       }) }}' | escape }}</code></pre>
 
     <h2 class="govuk-heading-l">Display modes</h2>
-
-    <h3 class="govuk-heading-m">Dropdown on search focus</h3>
-    <p class="govuk-body">The results overlay the page and open when the search field receives focus.</p>
-    <pre class="component-code"><code>attributes: {
-  "data-multiselect-display": "dropdown"
-}</code></pre>
 
     <h3 class="govuk-heading-m">Dropdown with arrow</h3>
     <p class="govuk-body">
@@ -1239,7 +1169,84 @@
         ]
       }) }}' | escape }}</code></pre>
 
+ <h2 class="govuk-heading-l">Radio typeahead</h2>
+    <p class="govuk-body">
+      Add <code>js-typeahead</code> class to a GOV.UK radio component. With JavaScript disabled,
+      the full radio list remains available. With JavaScript enabled, the list becomes a
+      searchable single-select control.
+    </p>
 
+    <div class="component-example">
+      {{ govukRadios({
+        idPrefix: "demo-operation",
+        name: "demo[operation]",
+        classes: "js-typeahead",
+        attributes: {
+          "data-typeahead-label": "Search items",
+          "data-typeahead-placeholder": "Start typing an item name"
+        },
+        fieldset: {
+          legend: {
+            text: "Select an item",
+            classes: "govuk-fieldset__legend--m"
+          }
+        },
+        items: [
+          { text: "Item 1", value: "Item 1" },
+          { text: "Item 2", value: "Item 2" },
+          { text: "Item 3", value: "Item 3" },
+          { text: "Item 4", value: "Item 4" },
+          { text: "Item 5", value: "Item 5" }
+        ]
+      }) }}
+    </div>
+
+    <h3 class="govuk-heading-m">Implementation</h3>
+    <pre class="component-code"><code>
+      {{ '{{ govukRadios({
+        idPrefix: "demo-operation",
+        name: "demo[operation]",
+        classes: "js-typeahead",
+        attributes: {
+          "data-typeahead-label": "Search items",
+          "data-typeahead-placeholder": "Start typing an item name"
+        },
+        fieldset: {
+          legend: {
+            text: "Select an item",
+            classes: "govuk-fieldset__legend--m"
+          }
+        },
+        items: [
+          { text: "Item 1", value: "Item 1" },
+          { text: "Item 2", value: "Item 2" },
+          { text: "Item 3", value: "Item 3" },
+          { text: "Item 4", value: "Item 4" },
+          { text: "Item 5", value: "Item 5" }
+        ]
+      }) }}' | escape }}</code></pre>
+
+    <h3 class="govuk-heading-m">Typeahead options</h3>
+    {{ govukTable({
+      firstCellIsHeader: true,
+      head: [
+        { text: "Attribute" },
+        { text: "Purpose" },
+        { text: "Default" }
+      ],
+      rows: [
+        [
+          { text: "data-typeahead-label" },
+          { text: "Visible label for the generated search input." },
+          { text: "Search" }
+        ],
+        [
+          { text: "data-typeahead-placeholder" },
+          { text: "Optional placeholder text inside the search input." },
+          { text: "Search" }
+        ]
+      ]
+    }) }}
 
     <h2 class="govuk-heading-l">Accessibility and implementation notes</h2>
     <ul class="govuk-list govuk-list--bullet">
