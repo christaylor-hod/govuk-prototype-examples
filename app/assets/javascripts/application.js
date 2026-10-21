@@ -517,33 +517,37 @@ window.GOVUKPrototypeKit.documentReady(() => {
     }
 
     function buildOption(item, index, idPrefix) {
-      var id = componentId + '-' + idPrefix + '-' + index
-      var row = document.createElement('div')
-      row.className = 'govuk-checkboxes__item'
+  var id = componentId + '-' + idPrefix + '-' + index
 
-      var input = document.createElement('input')
-      input.className = 'govuk-checkboxes__input'
-      input.id = id
-      input.type = 'checkbox'
-      input.checked = item.selected
+  var row = document.createElement('div')
+  row.className = 'govuk-checkboxes__item'
 
-      var label = document.createElement('label')
-      label.className = 'govuk-label govuk-checkboxes__label'
-      label.htmlFor = id
-      label.textContent = item.text
+  var input = document.createElement('input')
+  input.className = 'govuk-checkboxes__input'
+  input.id = id
+  input.type = 'checkbox'
+  input.checked = item.selected
 
-      input.addEventListener('change', function () {
-        item.selected = input.checked
-        syncOriginal(item)
-        renderSelectedItems()
-        updateFilterTrigger()
-        renderResults()
-      })
+  var label = document.createElement('label')
+  label.className = 'govuk-label govuk-checkboxes__label'
+  label.htmlFor = id
+  label.textContent = item.text
 
-      row.appendChild(input)
-      row.appendChild(label)
-      return row
-    }
+  input.addEventListener('change', function () {
+    item.selected = input.checked
+    syncOriginal(item)
+    renderSelectedItems()
+    updateFilterTrigger()
+
+    // Keep the existing results in place so keyboard focus remains
+    // on the checkbox the user has just selected.
+  })
+
+  row.appendChild(input)
+  row.appendChild(label)
+
+  return row
+}
 
     function renderResults() {
       var term = showSearch ? search.value.trim().toLowerCase() : ''

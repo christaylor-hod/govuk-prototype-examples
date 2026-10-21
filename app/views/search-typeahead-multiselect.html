@@ -549,6 +549,7 @@
 
     function buildOption(item, index, idPrefix) {
       var id = componentId + '-' + idPrefix + '-' + index
+
       var row = document.createElement('div')
       row.className = 'govuk-checkboxes__item'
 
@@ -568,13 +569,16 @@
         syncOriginal(item)
         renderSelectedItems()
         updateFilterTrigger()
-        renderResults()
+
+        // Keep the existing results in place so keyboard focus remains
+        // on the checkbox the user has just selected.
       })
 
       row.appendChild(input)
       row.appendChild(label)
+
       return row
-    }
+}
 
     function renderResults() {
       var term = showSearch ? search.value.trim().toLowerCase() : ''
