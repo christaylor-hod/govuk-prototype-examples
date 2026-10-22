@@ -1,955 +1,52 @@
 {% extends "layouts/main.html" %}
 
-{% set pageName="Home" %}
+{% set pageName = "Typeahead and multiselect components" %}
+
+{% block pageTitle %}
+  {{ pageName }} – {{ serviceName }} – GOV.UK Prototype Kit
+{% endblock %}
 
 {% block content %}
-
 <div class="govuk-grid-row">
-  <div class="govuk-grid-column-full">
-    <span class="govuk-caption-xl">Prototype component guidance</span>
-    <h1 class="govuk-heading-l">Typeahead and multiselect components</h1>
+  <div class="govuk-grid-column-two-thirds">
+    <span class="govuk-caption-l">Prototype component guidance</span>
+    <h1 class="govuk-heading-xl">Typeahead and multiselect components</h1>
 
-     <p>This component adds additional functionality to radio lists or checkbox lists.</p>
-    
-    <p>It was designed for internal services where you may have unavoidably long list of radios or checkboxes and provides several options depending on your needs. </p>
-
-    <p>This has performed well in several rounds of alpha usability testing but is expected to be iterated further in the future. We also need to do more work on accessibilty.</p>
-
+    <p class="govuk-body-l">These JavaScript enhancements make long GOV.UK radio and checkbox lists searchable while keeping the original form controls and submitted values.</p>
 
     <div class="govuk-inset-text">
-      These are prototype components, not official GOV.UK Design System components.
-      Test them with users and assistive technologies before using them in a live service.
+      These are prototype components, not official GOV.UK Design System components. Test them with users and assistive technologies before using them in a live service.
     </div>
 
-    <h2 class="govuk-heading-l">How to add to your prototype</h2>
-    <p>Copy paste this code into your prototype and then add the relevant classes and attributes to your existing radio or checkbox component in order for it to work.</p>
+    <h2 class="govuk-heading-l">Changes 22/10/26</h2>
+    <ul class="govuk-list govuk-list--bullet">
+      <li>The selected-items summary is now optional and is hidden by default.</li>
+      <li>Focusing the search field no longer opens the drop down list by default.</li>
+      <li>The dropdown arrow and opening the list on focus are now separate options.</li>
+      <li>All of the options have been renamed to be clearer.</li>
+      <li>When a keyboard user selects a checkbox with the Space key, focus remains on that checkbox.</li>
+    </ul>
+
+    <h2 class="govuk-heading-l">Add the components to your prototype</h2>
     <ol class="govuk-list govuk-list--number">
-      <li>
-        JS Code. <br/>Paste into your <code>application.js</code>, inside the <code>window.GOVUKPrototypeKit.documentReady</code>
-        <details class="govuk-details">
-          <summary class="govuk-details__summary">
-            <span class="govuk-details__summary-text">
-              Code
-            </span>
-          </summary>
-          <div class="govuk-details__text">
-            
-              <br/><br/>
-            <pre class="component-code">
-<code>
-/*
- * Reusable GOV.UK form enhancements
- *
- * .js-typeahead  - enhances a GOV.UK radio group into a searchable single-select
- * .js-multiselect - enhances a GOV.UK checkbox group into a searchable multi-select
- *
- * The original form controls remain in the page and are kept in sync, so forms
- * continue to submit their original names and values. Without JavaScript, the
- * standard GOV.UK controls remain available.
- */
-
-;(function () {
-  'use strict'
-
-  var instanceCounter = 0
-
-  document.addEventListener('DOMContentLoaded', function () {
-    document.querySelectorAll('.js-typeahead').forEach(initialiseTypeahead)
-    document.querySelectorAll('.js-multiselect').forEach(initialiseMultiselect)
-  })
-
-  function uniqueId(prefix) {
-    instanceCounter += 1
-    return prefix + '-' + instanceCounter
-  }
-
-  function getLabelText(container, input) {
-    var label = container.querySelector('label[for="' + input.id + '"]')
-    return label ? label.textContent.trim() : input.value
-  }
-
-  function dispatchChange(control) {
-    control.dispatchEvent(new Event('change', { bubbles: true }))
-  }
-
-  function setClearButtonVisibility(button, input) {
-    button.hidden = input.value.trim() === ''
-  }
-
-  // ---------------------------------------------------------------------------
-  // Radio typeahead
-  // ---------------------------------------------------------------------------
-
-  function initialiseTypeahead(source) {
-    if (source.dataset.enhanced === 'true') return
-
-    var originalInputs = Array.from(
-      source.querySelectorAll('input[type="radio"]')
-    )
-
-    if (!originalInputs.length) return
-
-    source.dataset.enhanced = 'true'
-
-    var componentId = uniqueId('typeahead')
-    var placeholder = source.dataset.typeaheadPlaceholder || 'Search'
-    var searchLabelText = source.dataset.typeaheadLabel || 'Search'
-
-    var items = originalInputs.map(function (input) {
-      return {
-        text: getLabelText(source, input),
-        value: input.value,
-        selected: input.checked,
-        originalControl: input
-      }
-    })
-
-    var wrapper = document.createElement('div')
-    wrapper.className = 'typeahead'
-
-    var searchGroup = document.createElement('div')
-    searchGroup.className = 'govuk-form-group typeahead__search-group'
-
-    var searchLabel = document.createElement('label')
-    searchLabel.className = 'govuk-label'
-    searchLabel.htmlFor = componentId + '-search'
-    searchLabel.textContent = searchLabelText
-
-    var searchContainer = document.createElement('div')
-    searchContainer.className = 'typeahead__search-container'
-
-    var search = document.createElement('input')
-    search.className = 'govuk-input typeahead__search-input'
-    search.id = componentId + '-search'
-    search.type = 'text'
-    search.autocomplete = 'off'
-    search.placeholder = placeholder
-    search.setAttribute('aria-controls', componentId + '-results')
-    search.setAttribute('aria-expanded', 'false')
-
-    var clearSearch = document.createElement('button')
-    clearSearch.className = 'typeahead__clear-search'
-    clearSearch.type = 'button'
-    clearSearch.setAttribute('aria-label', 'Clear search and selected option')
-    clearSearch.innerHTML = '&times;'
-
-    var results = document.createElement('div')
-    results.className = 'typeahead__results'
-    results.id = componentId + '-results'
-    results.hidden = true
-
-    searchContainer.appendChild(search)
-    searchContainer.appendChild(clearSearch)
-    searchGroup.appendChild(searchLabel)
-    searchGroup.appendChild(searchContainer)
-    wrapper.appendChild(searchGroup)
-    wrapper.appendChild(results)
-
-    source.insertAdjacentElement('afterend', wrapper)
-    source.classList.add('enhanced-control--hidden')
-
-    function clearSelection() {
-      items.forEach(function (item) {
-        item.selected = false
-        item.originalControl.checked = false
-        dispatchChange(item.originalControl)
-      })
-    }
-
-    function selectItem(item) {
-      clearSelection()
-      item.selected = true
-      item.originalControl.checked = true
-      dispatchChange(item.originalControl)
-      search.value = item.text
-      setClearButtonVisibility(clearSearch, search)
-      closeResults()
-    }
-
-    function filteredItems() {
-      var term = search.value.trim().toLowerCase()
-      if (!term) return items
-      return items.filter(function (item) {
-        return item.text.toLowerCase().includes(term)
-      })
-    }
-
-    function openResults() {
-      results.hidden = false
-      search.setAttribute('aria-expanded', 'true')
-    }
-
-    function closeResults() {
-      results.hidden = true
-      search.setAttribute('aria-expanded', 'false')
-    }
-
-    function renderResults() {
-      var matches = filteredItems()
-      results.innerHTML = ''
-
-      if (!matches.length) {
-        var noResults = document.createElement('p')
-        noResults.className = 'govuk-body-s typeahead__no-results'
-        noResults.textContent = 'No matching results'
-        results.appendChild(noResults)
-        openResults()
-        return
-      }
-
-      var group = document.createElement('div')
-      group.className = 'govuk-radios govuk-radios--small'
-
-      matches.forEach(function (item, index) {
-        var id = componentId + '-option-' + index
-        var row = document.createElement('div')
-        row.className = 'govuk-radios__item'
-
-        var input = document.createElement('input')
-        input.className = 'govuk-radios__input'
-        input.id = id
-        input.name = componentId + '-generated'
-        input.type = 'radio'
-        input.checked = item.selected
-
-        var label = document.createElement('label')
-        label.className = 'govuk-label govuk-radios__label'
-        label.htmlFor = id
-        label.textContent = item.text
-
-        input.addEventListener('change', function () {
-          if (input.checked) selectItem(item)
-        })
-
-        row.appendChild(input)
-        row.appendChild(label)
-        group.appendChild(row)
-      })
-
-      results.appendChild(group)
-      openResults()
-    }
-
-    search.addEventListener('focus', renderResults)
-    search.addEventListener('input', function () {
-      setClearButtonVisibility(clearSearch, search)
-      renderResults()
-    })
-
-    clearSearch.addEventListener('click', function () {
-      clearSelection()
-      search.value = ''
-      setClearButtonVisibility(clearSearch, search)
-      renderResults()
-      search.focus()
-    })
-
-    search.addEventListener('keydown', function (event) {
-      if (event.key === 'Escape') closeResults()
-    })
-
-    document.addEventListener('click', function (event) {
-      if (!wrapper.contains(event.target)) closeResults()
-    })
-
-    var initiallySelected = items.find(function (item) {
-      return item.selected
-    })
-
-    if (initiallySelected) search.value = initiallySelected.text
-    setClearButtonVisibility(clearSearch, search)
-  }
-
-  // ---------------------------------------------------------------------------
-  // Checkbox multiselect
-  // ---------------------------------------------------------------------------
-
-  function initialiseMultiselect(source) {
-    if (source.dataset.enhanced === 'true') return
-
-    var originalInputs = Array.from(
-      source.querySelectorAll('input[type="checkbox"]')
-    )
-
-    if (!originalInputs.length) return
-
-    source.dataset.enhanced = 'true'
-
-    var componentId = uniqueId('multiselect')
-    var displayMode = source.dataset.multiselectDisplay || 'inline'
-    var useSections = source.dataset.multiselectSections === 'true'
-    var showSearch = source.dataset.multiselectSearch !== 'false'
-    var showSelected = source.dataset.multiselectSelected !== 'false'
-    var placeholder = source.dataset.multiselectPlaceholder || 'Search'
-    var searchLabelText = source.dataset.multiselectLabel || 'Search'
-    var defaultTriggerText = source.dataset.multiselectTrigger || 'All'
-    var isDropdown = displayMode === 'dropdown' || displayMode === 'dropdown-arrow'
-    var opensWithArrow = displayMode === 'dropdown-arrow'
-
-    if (!showSearch) {
-      isDropdown = true
-      opensWithArrow = true
-    }
-
-    var items = []
-    var otherItem = null
-
-    originalInputs.forEach(function (input) {
-      var text = getLabelText(source, input)
-      var itemWrapper = input.closest('.govuk-checkboxes__item')
-      var conditional = null
-
-      if (
-        itemWrapper &&
-        itemWrapper.nextElementSibling &&
-        itemWrapper.nextElementSibling.classList.contains(
-          'govuk-checkboxes__conditional'
-        )
-      ) {
-        conditional = itemWrapper.nextElementSibling
-      }
-
-      var isOther =
-        input.dataset.multiselectOther === 'true' ||
-        input.value.toLowerCase() === 'other' ||
-        text.toLowerCase() === 'other'
-
-      var item = {
-        text: text,
-        value: input.value,
-        selected: input.checked,
-        section: input.dataset.section || '',
-        originalControl: input,
-        itemWrapper: itemWrapper,
-        conditional: conditional
-      }
-
-      if (isOther) {
-        otherItem = item
-      } else {
-        items.push(item)
-      }
-    })
-
-    var wrapper = document.createElement('div')
-    wrapper.className = 'multiselect'
-
-    if (isDropdown) wrapper.classList.add('multiselect--dropdown')
-    if (opensWithArrow) wrapper.classList.add('multiselect--dropdown-arrow')
-    if (!showSearch) wrapper.classList.add('multiselect--no-search')
-
-    var selectedContainer = document.createElement('div')
-    selectedContainer.className = 'multiselect__selected'
-
-    var controlContainer = document.createElement('div')
-    controlContainer.className = 'multiselect__control'
-
-    var searchGroup = document.createElement('div')
-    searchGroup.className = 'govuk-form-group multiselect__search-group'
-
-    var searchLabel = document.createElement('label')
-    searchLabel.className = 'govuk-label'
-    searchLabel.htmlFor = componentId + '-search'
-    searchLabel.textContent = searchLabelText
-
-    var searchContainer = document.createElement('div')
-    searchContainer.className = 'multiselect__search-container'
-
-    var search = document.createElement('input')
-    search.className = 'govuk-input multiselect__search-input'
-    search.id = componentId + '-search'
-    search.type = 'text'
-    search.autocomplete = 'off'
-    search.placeholder = placeholder
-    search.setAttribute('aria-controls', componentId + '-results')
-    search.setAttribute('aria-expanded', 'false')
-
-    var clearSearch = document.createElement('button')
-    clearSearch.className = 'multiselect__clear-search'
-    clearSearch.type = 'button'
-    clearSearch.setAttribute('aria-label', 'Clear search')
-    clearSearch.innerHTML = '&times;'
-
-    var dropdownToggle = document.createElement('button')
-    dropdownToggle.className = 'multiselect__dropdown-toggle'
-    dropdownToggle.type = 'button'
-    dropdownToggle.setAttribute('aria-label', 'Show options')
-    dropdownToggle.setAttribute('aria-expanded', 'false')
-
-    var filterTrigger = document.createElement('button')
-    filterTrigger.className = 'multiselect__filter-trigger'
-    filterTrigger.type = 'button'
-    filterTrigger.setAttribute('aria-expanded', 'false')
-    filterTrigger.setAttribute('aria-controls', componentId + '-results')
-
-    var filterTriggerText = document.createElement('span')
-    filterTriggerText.className = 'multiselect__filter-trigger-text'
-    filterTriggerText.textContent = defaultTriggerText
-
-    var filterTriggerChevron = document.createElement('span')
-    filterTriggerChevron.className = 'multiselect__filter-trigger-chevron'
-    filterTriggerChevron.setAttribute('aria-hidden', 'true')
-
-    filterTrigger.appendChild(filterTriggerText)
-    filterTrigger.appendChild(filterTriggerChevron)
-
-    var results = document.createElement('div')
-    results.className = 'multiselect__results'
-    results.id = componentId + '-results'
-    if (isDropdown) results.hidden = true
-
-    if (showSelected) wrapper.appendChild(selectedContainer)
-
-    if (showSearch) {
-      searchContainer.appendChild(search)
-      searchContainer.appendChild(clearSearch)
-      if (opensWithArrow) searchContainer.appendChild(dropdownToggle)
-      searchGroup.appendChild(searchLabel)
-      searchGroup.appendChild(searchContainer)
-      controlContainer.appendChild(searchGroup)
-    } else {
-      controlContainer.appendChild(filterTrigger)
-    }
-
-    wrapper.appendChild(controlContainer)
-    wrapper.appendChild(results)
-
-    source.insertAdjacentElement('afterend', wrapper)
-
-    if (otherItem && otherItem.itemWrapper) {
-      var otherContainer = document.createElement('div')
-      otherContainer.className = 'multiselect__other'
-      var otherGroup = document.createElement('div')
-      otherGroup.className = 'govuk-checkboxes govuk-checkboxes--small'
-      otherGroup.appendChild(otherItem.itemWrapper)
-      otherContainer.appendChild(otherGroup)
-      if (otherItem.conditional) otherContainer.appendChild(otherItem.conditional)
-      wrapper.appendChild(otherContainer)
-    }
-
-    source.classList.add('enhanced-control--hidden')
-
-    function selectedItems() {
-      return items.filter(function (item) {
-        return item.selected
-      })
-    }
-
-    function syncOriginal(item) {
-      item.originalControl.checked = item.selected
-      dispatchChange(item.originalControl)
-    }
-
-    function updateClearButton() {
-      if (showSearch) setClearButtonVisibility(clearSearch, search)
-    }
-
-    function updateFilterTrigger() {
-      if (showSearch) return
-
-      var selected = selectedItems()
-      if (!selected.length) {
-        filterTriggerText.textContent = defaultTriggerText
-      } else if (selected.length <= 2) {
-        filterTriggerText.textContent = selected
-          .map(function (item) { return item.text })
-          .join(', ')
-      } else {
-        filterTriggerText.textContent = selected.length + ' selected'
-      }
-
-      filterTrigger.classList.toggle(
-        'multiselect__filter-trigger--active',
-        selected.length > 0
-      )
-    }
-
-    function renderSelectedItems() {
-      if (!showSelected) return
-
-      selectedContainer.innerHTML = ''
-
-      var heading = document.createElement('h3')
-      heading.className = 'govuk-heading-s'
-      heading.textContent = 'Selected items'
-      selectedContainer.appendChild(heading)
-
-      var selected = selectedItems()
-
-      if (!selected.length) {
-        var none = document.createElement('p')
-        none.className = 'govuk-body-s'
-        none.textContent = 'None'
-        selectedContainer.appendChild(none)
-        return
-      }
-
-      var list = document.createElement('ul')
-      list.className = 'govuk-list multiselect__selected-list'
-
-      selected.forEach(function (item) {
-        var row = document.createElement('li')
-        row.className = 'multiselect__selected-item'
-
-        var text = document.createElement('span')
-        text.textContent = item.text
-
-        var remove = document.createElement('button')
-        remove.className = 'govuk-link multiselect__remove'
-        remove.type = 'button'
-        remove.textContent = 'Remove'
-        remove.setAttribute('aria-label', 'Remove ' + item.text)
-
-        remove.addEventListener('click', function () {
-          item.selected = false
-          syncOriginal(item)
-          renderSelectedItems()
-          updateFilterTrigger()
-          renderResults()
-        })
-
-        row.appendChild(text)
-        row.appendChild(remove)
-        list.appendChild(row)
-      })
-
-      selectedContainer.appendChild(list)
-    }
-
-    function openResults() {
-      if (!isDropdown) return
-      results.hidden = false
-      wrapper.classList.add('multiselect--open')
-      if (showSearch) search.setAttribute('aria-expanded', 'true')
-      if (opensWithArrow && showSearch) {
-        dropdownToggle.setAttribute('aria-expanded', 'true')
-      }
-      if (!showSearch) filterTrigger.setAttribute('aria-expanded', 'true')
-    }
-
-    function closeResults() {
-      if (!isDropdown) return
-      results.hidden = true
-      wrapper.classList.remove('multiselect--open')
-      if (showSearch) search.setAttribute('aria-expanded', 'false')
-      if (opensWithArrow && showSearch) {
-        dropdownToggle.setAttribute('aria-expanded', 'false')
-      }
-      if (!showSearch) filterTrigger.setAttribute('aria-expanded', 'false')
-    }
-
-    function toggleResults() {
-      if (results.hidden) {
-        renderResults()
-        openResults()
-      } else {
-        closeResults()
-      }
-    }
-
-    function buildOption(item, index, idPrefix) {
-      var id = componentId + '-' + idPrefix + '-' + index
-
-      var row = document.createElement('div')
-      row.className = 'govuk-checkboxes__item'
-
-      var input = document.createElement('input')
-      input.className = 'govuk-checkboxes__input'
-      input.id = id
-      input.type = 'checkbox'
-      input.checked = item.selected
-
-      var label = document.createElement('label')
-      label.className = 'govuk-label govuk-checkboxes__label'
-      label.htmlFor = id
-      label.textContent = item.text
-
-      input.addEventListener('change', function () {
-        item.selected = input.checked
-        syncOriginal(item)
-        renderSelectedItems()
-        updateFilterTrigger()
-
-        // Keep the existing results in place so keyboard focus remains
-        // on the checkbox the user has just selected.
-      })
-
-      row.appendChild(input)
-      row.appendChild(label)
-
-      return row
-}
-
-    function renderResults() {
-      var term = showSearch ? search.value.trim().toLowerCase() : ''
-      var visible = items.filter(function (item) {
-        return !term || item.text.toLowerCase().includes(term)
-      })
-
-      results.innerHTML = ''
-
-      if (!visible.length) {
-        var noResults = document.createElement('p')
-        noResults.className = 'govuk-body-s multiselect__no-results'
-        noResults.textContent = 'No matching results'
-        results.appendChild(noResults)
-        return
-      }
-
-      if (!useSections) {
-        var group = document.createElement('div')
-        group.className = 'govuk-checkboxes govuk-checkboxes--small'
-        visible.forEach(function (item, index) {
-          group.appendChild(buildOption(item, index, 'option'))
-        })
-        results.appendChild(group)
-        return
-      }
-
-      var grouped = {}
-      var order = []
-
-      visible.forEach(function (item) {
-        var section = item.section || 'Other'
-        if (!grouped[section]) {
-          grouped[section] = []
-          order.push(section)
-        }
-        grouped[section].push(item)
-      })
-
-      order.forEach(function (section, sectionIndex) {
-        var heading = document.createElement('h3')
-        heading.className = 'govuk-heading-s multiselect__section-heading'
-        heading.textContent = section
-        results.appendChild(heading)
-
-        var group = document.createElement('div')
-        group.className = 'govuk-checkboxes govuk-checkboxes--small'
-
-        grouped[section].forEach(function (item, itemIndex) {
-          group.appendChild(
-            buildOption(item, itemIndex, 'section-' + sectionIndex)
-          )
-        })
-
-        results.appendChild(group)
-      })
-    }
-
-    if (otherItem && otherItem.originalControl && otherItem.conditional) {
-      function updateOtherConditional() {
-        var checked = otherItem.originalControl.checked
-        otherItem.conditional.hidden = !checked
-        otherItem.conditional.classList.toggle(
-          'govuk-checkboxes__conditional--hidden',
-          !checked
-        )
-      }
-
-      otherItem.originalControl.addEventListener(
-        'change',
-        updateOtherConditional
-      )
-      updateOtherConditional()
-    }
-
-    if (showSearch) {
-      search.addEventListener('focus', function () {
-        if (isDropdown && !opensWithArrow) {
-          renderResults()
-          openResults()
-        }
-      })
-
-      search.addEventListener('input', function () {
-        updateClearButton()
-        renderResults()
-        if (isDropdown) openResults()
-      })
-
-      clearSearch.addEventListener('click', function () {
-        search.value = ''
-        updateClearButton()
-        renderResults()
-        if (isDropdown && !opensWithArrow) openResults()
-        search.focus()
-      })
-
-      if (opensWithArrow) {
-        dropdownToggle.addEventListener('click', function () {
-          toggleResults()
-          search.focus()
-        })
-      }
-
-      search.addEventListener('keydown', function (event) {
-        if (event.key === 'Escape') closeResults()
-      })
-    } else {
-      filterTrigger.addEventListener('click', toggleResults)
-      filterTrigger.addEventListener('keydown', function (event) {
-        if (event.key === 'Escape') closeResults()
-      })
-    }
-
-    document.addEventListener('click', function (event) {
-      if (isDropdown && !wrapper.contains(event.target)) closeResults()
-    })
-
-    renderSelectedItems()
-    updateFilterTrigger()
-    updateClearButton()
-    if (!isDropdown) renderResults()
-  }
-})()
-</code>
-            </pre>
-          </div>
-        </details>
-
-      </li>
-      <li>
-        CSS Code.<br/>
-        Paste into your <code>application.scss</code>
-<details class="govuk-details">
-          <summary class="govuk-details__summary">
-            <span class="govuk-details__summary-text">
-             Code
-            </span>
-          </summary>
-          <div class="govuk-details__text">
-       
-              <pre class="component-code">
-                <code>
-
-.enhanced-control--hidden {
-  display: none;
-}
-
-/* Shared search control */
-.typeahead,
-.multiselect {
-  position: relative;
-}
-
-.typeahead__search-container,
-.multiselect__search-container {
-  position: relative;
-}
-
-.typeahead__search-input,
-.multiselect__search-input {
-  padding-right: 44px;
-}
-
-.multiselect--dropdown-arrow .multiselect__search-input {
-  padding-right: 86px;
-}
-
-.typeahead__clear-search,
-.multiselect__clear-search,
-.multiselect__dropdown-toggle {
-  position: absolute;
-  top: 2px;
-  width: 38px;
-  height: 38px;
-  border: 0;
-  background: transparent;
-  cursor: pointer;
-  font-size: 24px;
-  line-height: 1;
-}
-
-.typeahead__clear-search,
-.multiselect__clear-search {
-  right: 2px;
-}
-
-.multiselect--dropdown-arrow .multiselect__clear-search {
-  right: 42px;
-}
-
-.multiselect__dropdown-toggle {
-  right: 2px;
-  border-left: 2px solid #000;
-}
-
-.multiselect__dropdown-toggle::before,
-.multiselect__filter-trigger-chevron::before {
-  content: "";
-  display: block;
-  width: 10px;
-  height: 10px;
-  margin: auto;
-  border-right: 2px solid currentColor;
-  border-bottom: 2px solid currentColor;
-  transform: rotate(45deg);
-  margin-top: -5px;
-}
-
-.multiselect__filter-trigger-chevron::before {
-    margin-top: 10px!important;
-}
-
-.multiselect__dropdown-toggle[aria-expanded="true"]::before,
-.multiselect__filter-trigger[aria-expanded="true"]
-  .multiselect__filter-trigger-chevron::before {
-  transform: rotate(-135deg);
-  margin-top: 2px;
-}
-
-  .multiselect__filter-trigger-chevron::before {
-margin-top: 10px!important;
-  }
-
-/* Typeahead results */
-.typeahead__results {
-  position: absolute;
-  z-index: 1000;
-  left: 0;
-  right: 0;
-  max-height: 270px;
-  overflow-y: auto;
-  padding: 10px;
-  background: #ffffff;
-  border: 2px solid #0b0c0c;
-  border-top: 0;
-  margin-top: -30px;
-}
-
-.typeahead__results[hidden],
-.multiselect__results[hidden] {
-  display: none;
-}
-
-/* Multiselect selected items */
-.multiselect__selected {
-  margin-bottom: 15px;
-}
-
-.multiselect__selected .govuk-heading-s {
-  margin-bottom: 5px;
-}
-
-.multiselect__selected-list {
-  margin-bottom: 0;
-}
-
-.multiselect__selected-item {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  margin-bottom: 5px;
-}
-
-.multiselect__remove {
-  padding: 0;
-  border: 0;
-  background: transparent;
-  cursor: pointer;
-}
-
-/* Multiselect results */
-.multiselect__results {
-  margin-top: 10px;
-}
-
-.multiselect--dropdown .multiselect__results,
-.multiselect--dropdown-arrow .multiselect__results {
-  position: absolute;
-  z-index: 1000;
-  left: 0;
-  right: 0;
-  max-height: 300px;
-  overflow-y: auto;
-  padding: 10px;
-  background: #ffffff;
-  border: 2px solid #0b0c0c;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-  margin-top: -2px;
-}
-
-.multiselect__section-heading {
-  margin-top: 15px;
-  margin-bottom: 5px;
-}
-
-.multiselect__section-heading:first-child {
-  margin-top: 0;
-}
-
-.multiselect__other {
-  margin-top: 15px;
-}
-
-/* No-search/filter mode */
-.multiselect__filter-trigger {
-  display: flex;
-  align-items: stretch;
-  justify-content: space-between;
-  width: 100%;
-  min-width: 160px;
-  min-height: 40px;
-  padding: 0;
-  border: 2px solid #0b0c0c;
-  background: #ffffff;
-  color: #0b0c0c;
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-
-.multiselect__filter-trigger:focus {
-  outline: 3px solid #ffdd00;
-  outline-offset: 0;
-}
-
-.multiselect__filter-trigger-text {
-  display: block;
-  flex: 1;
-  padding: 7px 10px;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-.multiselect__filter-trigger-chevron {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  border-left: 2px solid #0b0c0c;
-}
-
-.multiselect__filter-trigger--active {
-  border-color: #1d70b8;
-  font-weight: 700;
-}
-             </code> </pre>
-
-      </li>
-
+      <li>Add the application JavaScript to your prototype js file<code class="govuk-code">app/assets/javascripts/application.js</code>, or load it from a separate JavaScript file.</li>
+      <li>Add the component styles to <code class="govuk-code">app/assets/sass/application.scss</code>, or import them from a separate Sass file.</li>
+      <li>Add <code class="govuk-code">js-multiselect</code> to GOV.UK checkboxes or <code class="govuk-code">js-typeahead</code> to GOV.UK radios.</li>
+      <li>Add required options via data attributes.</li>
     </ol>
 
-   
-
     <h2 class="govuk-heading-l">Checkbox multiselect</h2>
-    <p class="govuk-body">
-      Add <code>js-multiselect</code> class to a GOV.UK checkbox component. The default mode
-      displays selected items, a search field and the complete checkbox list.
-    </p>
+    <p class="govuk-body">Add the <code class="govuk-code">js-multiselect</code> class to a GOV.UK checkboxes component. Without JavaScript, the original checkbox list remains available.</p>
+
+    <h3 class="govuk-heading-m">Default behaviour</h3>
+    <p class="govuk-body">The default version shows a labelled search field. The selected-items summary and dropdown arrow are hidden. Focusing the search field does not open the list. The filtered list opens when the user types.</p>
 
     <div class="component-example">
       {{ govukCheckboxes({
         idPrefix: "multiselect",
         name: "demo[multiselect]",
         classes: "js-multiselect",
-        attributes: {
-          "data-multiselect-label": "Search items",
-          "data-multiselect-placeholder": "Start typing an item name",
-          "data-multiselect-display": "dropdown"
-        },
+      
         fieldset: {
           legend: {
             text: "Select items",
@@ -974,16 +71,76 @@ margin-top: 10px!important;
       }) }}
     </div>
 
-    <h3 class="govuk-heading-m">Implementation</h3>
-    <pre class="component-code"><code>{{ '{{ govukCheckboxes({
+    <h4 class="govuk-heading-s">Implementation</h4>
+    <pre class="component-code"><code class="">
+{% raw %}{{ govukCheckboxes({
+  idPrefix: "multiselect",
+  name: "demo[multiselect]",
+  classes: "js-multiselect",
+    fieldset: {
+      legend: {
+        text: "Select items",
+        classes: "govuk-fieldset__legend--m"
+      }
+    },
+    hint: {
+      text: "You can select more than one option."
+    },
+    items: [
+    { text: "Item 1", value: "Item 1"},
+    { text: "Item 2", value: "Item 2" },
+    { text: "Item 3", value: "Item 3"},
+    { text: "Item 4", value: "Item 4"},
+    { text: "Item 5", value: "Item 5"},
+    { text: "Item 6", value: "Item 6" },
+    { text: "Item 7", value: "Item 7"},
+    { text: "Item 8", value: "Item 8" },
+    { text: "Item 9", value: "Item 9"}
+    ]
+  }) }}{% endraw %}</code></pre>
+
+    <h3 class="govuk-heading-m">Multiselect options</h3>
+    <div class="govuk-table__container">
+      <table class="govuk-table">
+        <caption class="govuk-table__caption govuk-table__caption--s">Options applied to the GOV.UK checkboxes component</caption>
+        <thead class="govuk-table__head">
+          <tr class="govuk-table__row">
+            <th scope="col" class="govuk-table__header">Attribute</th>
+            <th scope="col" class="govuk-table__header">Values</th>
+            <th scope="col" class="govuk-table__header">Default</th>
+            <th scope="col" class="govuk-table__header">What it does</th>
+          </tr>
+        </thead>
+        <tbody class="govuk-table__body">
+          <tr class="govuk-table__row"><th scope="row" class="govuk-table__header"><code class="govuk-code">data-options-search-label</code></th><td class="govuk-table__cell">Text</td><td class="govuk-table__cell">Search</td><td class="govuk-table__cell">Sets the visible label for the generated search field.</td></tr>
+          <tr class="govuk-table__row"><th scope="row" class="govuk-table__header"><code class="govuk-code">data-options-search-placeholder</code></th><td class="govuk-table__cell">Text</td><td class="govuk-table__cell">Search</td><td class="govuk-table__cell">Sets optional placeholder text. Do not use it instead of a visible label.</td></tr>
+          <tr class="govuk-table__row"><th scope="row" class="govuk-table__header"><code class="govuk-code">data-options-show-selected-items</code></th><td class="govuk-table__cell">true or false</td><td class="govuk-table__cell">false</td><td class="govuk-table__cell">Shows a summary above the search field containing selected items and Remove buttons.</td></tr>
+          <tr class="govuk-table__row"><th scope="row" class="govuk-table__header"><code class="govuk-code">data-options-show-dropdown-arrow</code></th><td class="govuk-table__cell">true or false</td><td class="govuk-table__cell">false</td><td class="govuk-table__cell">Adds a button that opens and closes the options list.</td></tr>
+          <tr class="govuk-table__row"><th scope="row" class="govuk-table__header"><code class="govuk-code">data-options-show-dropdown-list-on-focus</code></th><td class="govuk-table__cell">true or false</td><td class="govuk-table__cell">false</td><td class="govuk-table__cell">Opens the full options list when the search field receives focus.</td></tr>
+          <tr class="govuk-table__row"><th scope="row" class="govuk-table__header"><code class="govuk-code">data-multiselect-sections</code></th><td class="govuk-table__cell">true or false</td><td class="govuk-table__cell">false</td><td class="govuk-table__cell">Groups results beneath headings taken from each item’s <code class="govuk-code">data-section</code> attribute.</td></tr>
+          <tr class="govuk-table__row"><th scope="row" class="govuk-table__header"><code class="govuk-code">data-multiselect-search</code></th><td class="govuk-table__cell">true or false</td><td class="govuk-table__cell">true</td><td class="govuk-table__cell">Set to false to replace the search field with a compact filter trigger.</td></tr>
+          <tr class="govuk-table__row"><th scope="row" class="govuk-table__header"><code class="govuk-code">data-multiselect-trigger</code></th><td class="govuk-table__cell">Text</td><td class="govuk-table__cell">All</td><td class="govuk-table__cell">Sets the default trigger text when search is disabled.</td></tr>
+          <tr class="govuk-table__row"><th scope="row" class="govuk-table__header"><code class="govuk-code">data-section</code></th><td class="govuk-table__cell">Text on each checkbox item</td><td class="govuk-table__cell">None</td><td class="govuk-table__cell">Defines the section heading for an item when sections are enabled.</td></tr>
+          <tr class="govuk-table__row"><th scope="row" class="govuk-table__header"><code class="govuk-code">data-multiselect-other</code></th><td class="govuk-table__cell">true on one checkbox</td><td class="govuk-table__cell">false</td><td class="govuk-table__cell">Keeps an Other option and its conditional reveal outside the searchable results.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="govuk-heading-m">Using options </h3>
+    <p class="govuk-body">The  options are independent. In this example, the component shows selected items, includes a dropdown arrow, opens when focused and groups results under headings.</p>
+    <div class="component-example">
+          {{ govukCheckboxes({
         idPrefix: "multiselect",
         name: "demo[multiselect]",
         classes: "js-multiselect",
         attributes: {
-          "data-multiselect-label": "Search items",
-          "data-multiselect-placeholder": "Start typing an item name",
-          "data-multiselect-display": "dropdown"
-        },
+    "data-options-search-label": "Search teams",
+    "data-options-search-placeholder": "Start typing a team",
+    "data-options-show-selected-items": "true",
+    "data-options-show-dropdown-arrow": "true",
+    "data-options-show-dropdown-list-on-focus": "true",
+    "data-multiselect-sections": "true"
+  },
         fieldset: {
           legend: {
             text: "Select items",
@@ -994,140 +151,6 @@ margin-top: 10px!important;
           text: "You can select more than one option."
         },
         items: [
-        { text: "Item 1", value: "Item 1"},
-        { text: "Item 2", value: "Item 2"},
-        { text: "Item 3", value: "Item 3"},
-        { text: "Item 1", value: "Item 1"},
-        { text: "Item 2", value: "Item 2"},
-        { text: "Item 3", value: "Item 3"},
-        { text: "Item 1", value: "Item 1"},
-        { text: "Item 2", value: "Item 2"},
-        { text: "Item 3", value: "Item 3"}
-
-        ]
-      }) }}' | escape }}</code></pre>
-
-    <h2 class="govuk-heading-l">Display modes</h2>
-
-    <h3 class="govuk-heading-m">Dropdown with arrow</h3>
-    <p class="govuk-body">
-      The arrow opens the full list. Typing in the search field also opens the filtered results.
-    </p>
-    <pre class="component-code"><code>attributes: {
-  "data-multiselect-display": "dropdown-arrow"
-}</code></pre>
-
-    <div class="component-example">
-      {{ govukCheckboxes({
-        idPrefix: "demo-teams",
-        name: "demo[teams]",
-        classes: "js-multiselect",
-        attributes: {
-          "data-multiselect-display": "dropdown-arrow",
-          "data-multiselect-label": "Search teams",
-          "data-multiselect-placeholder": "Start typing a team"
-        },
-        fieldset: {
-          legend: {
-            text: "Select teams",
-            classes: "govuk-fieldset__legend--m"
-          }
-        },
-        items: [
-          { text: "Team 1", value: "Team 1" },
-          { text: "Team 2", value: "Team 2" },
-          { text: "Team 3", value: "Team 3" },
-          { text: "Team 4", value: "Team 4" },
-          { text: "Team 5", value: "Team 5" }
-        ]
-      }) }}
-    </div>
-
-    
-    <h2 class="govuk-heading-l">Multiselect options</h2>
-    {{ govukTable({
-      firstCellIsHeader: true,
-      head: [
-        { text: "Attribute" },
-        { text: "Values" },
-        { text: "What it does" }
-      ],
-      rows: [
-        [
-          { text: "data-multiselect-display" },
-          { text: "inline, dropdown, dropdown-arrow" },
-          { text: "Controls whether results remain in the page flow or open as an overlay." }
-        ],
-        [
-          { text: "data-multiselect-label" },
-          { text: "Text" },
-          { text: "Sets the visible label for the search input." }
-        ],
-        [
-          { text: "data-multiselect-placeholder" },
-          { text: "Text" },
-          { text: "Sets optional placeholder text." }
-        ],
-        [
-          { text: "data-multiselect-sections" },
-          { text: "true or false" },
-          { text: "Groups results beneath headings taken from each item’s data-section attribute." }
-        ],
-        [
-          { text: "data-multiselect-search" },
-          { text: "true or false" },
-          { text: "Set to false to use the compact no-search filter trigger." }
-        ],
-        [
-          { text: "data-multiselect-selected" },
-          { text: "true or false" },
-          { text: "Controls whether the Selected items list is displayed." }
-        ],
-        [
-          { text: "data-multiselect-trigger" },
-          { text: "Text" },
-          { text: "Sets the default trigger label in no-search mode." }
-        ],
-        [
-          { text: "data-section" },
-          { text: "Text, on each checkbox item" },
-          { text: "Defines the section heading for that item when sections are enabled." }
-        ],
-        [
-          { text: "data-multiselect-other" },
-          { text: "true, on one checkbox item" },
-          { text: "Keeps an Other option and its conditional reveal outside the searchable results." }
-        ]
-      ]
-    }) }}
-
-
-<h3 class="govuk-heading-m">Dropdown with subheadings</h3>
-<p>Add the attribute <code>data-multiselect-sections</code> to the checkbox control and then add a corresponding <code>attributes: { "data-section": "Subheading 1" }</code> to each item. The results list will group items alphabetically under each section heading. Any remianing items you dont explicitly add a data-section to will be grouped under an 'Other' heading. </p>
-
-<pre class="component-code"><code>attributes: {
-  "data-multiselect-sections": "true"
-}</code></pre>
-
-<div class="component-example">
-      {{ govukCheckboxes({
-        idPrefix: "demo-teams",
-        name: "demo[teams]",
-        classes: "js-multiselect",
-        attributes: {
-          "data-multiselect-display": "dropdown-arrow",
-          "data-multiselect-label": "Search teams",
-          "data-multiselect-placeholder": "Start typing a team",
-          "data-multiselect-sections" : true
-        },
-        fieldset: {
-          legend: {
-            text: "Select teams",
-            classes: "govuk-fieldset__legend--m"
-          }
-        },
-        items: [
-
         { text: "Item 1", value: "Item 1", attributes: { "data-section": "Subheading 1" } },
         { text: "Item 2", value: "Item 2", attributes: { "data-section": "Subheading 1" } },
         { text: "Item 3", value: "Item 3", attributes: { "data-section": "Subheading 1" } },
@@ -1135,53 +158,66 @@ margin-top: 10px!important;
         { text: "Item 2", value: "Item 2", attributes: { "data-section": "Subheading 2" } },
         { text: "Item 3", value: "Item 3", attributes: { "data-section": "Subheading 2" } },
         { text: "Item 1", value: "Item 1", attributes: { "data-section": "Subheading 3" } },
-        { text: "Item 2", value: "Item 2", attributes: { "data-section": "Subheading 3" } },
-        { text: "Item 3", value: "Item 3" }
+        { text: "Item 2", value: "Item 2", attributes: { "data-section": "Subheading 3" } }
+
         ]
       }) }}
-    </div>
+      </div>
 
+    <pre class="component-code"><code class="">{% raw %}{{ govukCheckboxes({
+  idPrefix: "multiselect",
+  name: "demo[multiselect]",
+  classes: "js-multiselect",
+  attributes: {
+    "data-options-search-label": "Search teams",
+    "data-options-search-placeholder": "Start typing a team",
+    "data-options-show-selected-items": "true",
+    "data-options-show-dropdown-arrow": "true",
+    "data-options-show-dropdown-list-on-focus": "true",
+    "data-multiselect-sections": "true"
+  },
+  fieldset: {
+  legend: {
+    text: "Select items",
+    classes: "govuk-fieldset__legend--m"
+  }
+  },
+  hint: {
+    text: "You can select more than one option."
+  },
+  items: [
+    { text: "Item 1", value: "Item 1", attributes: { "data-section": "Subheading 1" } },
+    { text: "Item 2", value: "Item 2", attributes: { "data-section": "Subheading 1" } },
+    { text: "Item 3", value: "Item 3", attributes: { "data-section": "Subheading 1" } },
+    { text: "Item 1", value: "Item 1", attributes: { "data-section": "Subheading 1" } },
+    { text: "Item 2", value: "Item 2", attributes: { "data-section": "Subheading 2" } },
+    { text: "Item 3", value: "Item 3", attributes: { "data-section": "Subheading 2" } },
+    { text: "Item 1", value: "Item 1", attributes: { "data-section": "Subheading 3" } },
+    { text: "Item 2", value: "Item 2", attributes: { "data-section": "Subheading 3" } }
+  ]
+}) }}{% endraw %}</code></pre>
+
+    <!-- <h3 class="govuk-heading-m">Removed and renamed options</h3>
+    <table class="govuk-table">
+      <thead class="govuk-table__head"><tr class="govuk-table__row"><th scope="col" class="govuk-table__header">Previous attribute</th><th scope="col" class="govuk-table__header">Use instead</th></tr></thead>
+      <tbody class="govuk-table__body">
+        <tr class="govuk-table__row"><td class="govuk-table__cell"><code class="govuk-code">data-multiselect-label</code></td><td class="govuk-table__cell"><code class="govuk-code">data-options-search-label</code></td></tr>
+        <tr class="govuk-table__row"><td class="govuk-table__cell"><code class="govuk-code">data-multiselect-placeholder</code></td><td class="govuk-table__cell"><code class="govuk-code">data-options-search-placeholder</code></td></tr>
+        <tr class="govuk-table__row"><td class="govuk-table__cell"><code class="govuk-code">data-multiselect-selected</code></td><td class="govuk-table__cell"><code class="govuk-code">data-options-show-selected-items</code></td></tr>
+        <tr class="govuk-table__row"><td class="govuk-table__cell"><code class="govuk-code">data-multiselect-display</code></td><td class="govuk-table__cell"><code class="govuk-code">data-options-show-dropdown-arrow</code> and <code class="govuk-code">data-options-show-dropdown-list-on-focus</code></td></tr>
+      </tbody>
+    </table>
+
+    <div class="govuk-warning-text">
+      <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
+      <strong class="govuk-warning-text__text"><span class="govuk-visually-hidden">Warning</span>Previous multiselect option names are not read by the replacement JavaScript. Update existing examples when replacing the application code.</strong>
+    </div> -->
+
+    <h2 class="govuk-heading-l">Radio typeahead</h2>
+    <p class="govuk-body">Add the <code class="govuk-code">js-typeahead</code> class to a GOV.UK radios component. With JavaScript enabled, the radios become a searchable single-select control. The original radio list remains available without JavaScript.</p>
+    <div class="component-example">
     <h3 class="govuk-heading-m">Implementation</h3>
-    <pre class="component-code"><code>
-      {{ '{{ govukCheckboxes({
-        idPrefix: "demo-teams",
-        name: "demo[teams]",
-        classes: "js-multiselect",
-        attributes: {
-          "data-multiselect-display": "dropdown-arrow",
-          "data-multiselect-label": "Search teams",
-          "data-multiselect-placeholder": "Start typing a team",
-          "data-multiselect-sections" : true
-        },
-        fieldset: {
-          legend: {
-            text: "Select teams",
-            classes: "govuk-fieldset__legend--m"
-          }
-        },
-        items: [
-
-        { text: "Item 1", value: "Item 1", attributes: { "data-section": "Subheading 1" } },
-        { text: "Item 2", value: "Item 2", attributes: { "data-section": "Subheading 1" } },
-        { text: "Item 3", value: "Item 3", attributes: { "data-section": "Subheading 1" } },
-        { text: "Item 1", value: "Item 1", attributes: { "data-section": "Subheading 1" } },
-        { text: "Item 2", value: "Item 2", attributes: { "data-section": "Subheading 2" } },
-        { text: "Item 3", value: "Item 3", attributes: { "data-section": "Subheading 2" } },
-        { text: "Item 1", value: "Item 1", attributes: { "data-section": "Subheading 3" } },
-        { text: "Item 2", value: "Item 2", attributes: { "data-section": "Subheading 3" } },
-        { text: "Item 3", value: "Item 3" }
-        ]
-      }) }}' | escape }}</code></pre>
-
- <h2 class="govuk-heading-l">Radio typeahead</h2>
-    <p class="govuk-body">
-      Add <code>js-typeahead</code> class to a GOV.UK radio component. With JavaScript disabled,
-      the full radio list remains available. With JavaScript enabled, the list becomes a
-      searchable single-select control.
-    </p>
-
-    <div class="component-example">
-      {{ govukRadios({
+    {{ govukRadios({
         idPrefix: "demo-operation",
         name: "demo[operation]",
         classes: "js-typeahead",
@@ -1203,59 +239,53 @@ margin-top: 10px!important;
           { text: "Item 5", value: "Item 5" }
         ]
       }) }}
-    </div>
-
-    <h3 class="govuk-heading-m">Implementation</h3>
-    <pre class="component-code"><code>
-      {{ '{{ govukRadios({
-        idPrefix: "demo-operation",
-        name: "demo[operation]",
-        classes: "js-typeahead",
-        attributes: {
-          "data-typeahead-label": "Search items",
-          "data-typeahead-placeholder": "Start typing an item name"
-        },
-        fieldset: {
-          legend: {
-            text: "Select an item",
-            classes: "govuk-fieldset__legend--m"
-          }
-        },
-        items: [
-          { text: "Item 1", value: "Item 1" },
-          { text: "Item 2", value: "Item 2" },
-          { text: "Item 3", value: "Item 3" },
-          { text: "Item 4", value: "Item 4" },
-          { text: "Item 5", value: "Item 5" }
-        ]
-      }) }}' | escape }}</code></pre>
+      </div>
+    <pre class="component-code"><code class="">{% raw %}{{ govukRadios({
+  idPrefix: "demo-operation",
+  name: "demo[operation]",
+  classes: "js-typeahead",
+  attributes: {
+    "data-typeahead-label": "Search items",
+    "data-typeahead-placeholder": "Start typing an item name"
+  },
+  fieldset: {
+    legend: {
+      text: "Select an item",
+      classes: "govuk-fieldset__legend--m"
+    }
+  },
+  items: [
+    { text: "Item 1", value: "Item 1" },
+    { text: "Item 2", value: "Item 2" },
+    { text: "Item 3", value: "Item 3" },
+    { text: "Item 4", value: "Item 4" },
+    { text: "Item 5", value: "Item 5" }
+  ]
+}) }}{% endraw %}</code></pre>
 
     <h3 class="govuk-heading-m">Typeahead options</h3>
-    {{ govukTable({
-      firstCellIsHeader: true,
-      head: [
-        { text: "Attribute" },
-        { text: "Purpose" },
-        { text: "Default" }
-      ],
-      rows: [
-        [
-          { text: "data-typeahead-label" },
-          { text: "Visible label for the generated search input." },
-          { text: "Search" }
-        ],
-        [
-          { text: "data-typeahead-placeholder" },
-          { text: "Optional placeholder text inside the search input." },
-          { text: "Search" }
-        ]
-      ]
-    }) }}
+    <table class="govuk-table">
+      <thead class="govuk-table__head"><tr class="govuk-table__row"><th scope="col" class="govuk-table__header">Attribute</th><th scope="col" class="govuk-table__header">Purpose</th><th scope="col" class="govuk-table__header">Default</th></tr></thead>
+      <tbody class="govuk-table__body">
+        <tr class="govuk-table__row"><th scope="row" class="govuk-table__header"><code class="govuk-code">data-typeahead-label</code></th><td class="govuk-table__cell">Sets the visible label for the generated search input.</td><td class="govuk-table__cell">Search</td></tr>
+        <tr class="govuk-table__row"><th scope="row" class="govuk-table__header"><code class="govuk-code">data-typeahead-placeholder</code></th><td class="govuk-table__cell">Sets optional placeholder text inside the search input.</td><td class="govuk-table__cell">Search</td></tr>
+      </tbody>
+    </table>
+
+    <h2 class="govuk-heading-l">Keyboard behaviour</h2>
+    <ul class="govuk-list govuk-list--bullet">
+      <li>Tab moves through the search field, optional dropdown button and each visible option.</li>
+      <li>Space selects or clears a focused checkbox.</li>
+      <li>After Space is pressed, focus remains on the checkbox that changed.</li>
+      <li>Escape closes an open options list.</li>
+      <li>Typing filters the available options and opens the results.</li>
+    </ul>
 
     <h2 class="govuk-heading-l">Accessibility and implementation notes</h2>
     <ul class="govuk-list govuk-list--bullet">
       <li>Keep the original GOV.UK radio or checkbox component in the page.</li>
       <li>Give every generated search input a visible label.</li>
+      <li>Do not rely on placeholder text as the label.</li>
       <li>Do not reuse IDs or names across unrelated components.</li>
       <li>Test the unenhanced controls with JavaScript disabled.</li>
       <li>Test keyboard operation, screen-reader output, zoom, reflow and validation errors.</li>
@@ -1263,16 +293,10 @@ margin-top: 10px!important;
     </ul>
 
     <h2 class="govuk-heading-l">How submitted data works</h2>
-    <p class="govuk-body">
-      The JavaScript checks and unchecks the original GOV.UK controls. Your routes continue
-      to receive the same values and normally require no changes.
-    </p>
-
-    <pre class="component-code"><code>newCase: {
-  crime: ["Common assault", "Harassment"]
+    <p class="govuk-body">The enhancement checks and clears the original GOV.UK controls. Existing routes continue to receive the original names and values, so they should not need changes solely because the enhancement is added.</p>
+    <pre class="component-code"><code class="govuk-body-s">demo: {
+  multiselect: [&quot;Item 1&quot;, &quot;Item 3&quot;]
 }</code></pre>
   </div>
 </div>
-
-
 {% endblock %}

@@ -231,6 +231,53 @@ margin-top: 10px!important;
   white-space: pre;
 }
 
-code {
-    font-size: 18px;
+// Code examples
+
+.component-code {
+  margin: 0 0 govuk-spacing(6);
+  padding: govuk-spacing(4);
+
+  overflow-x: auto;
+
+  background: #f3f2f1;
+  border: 1px solid #b1b4b6;
+  border-left: 4px solid #505a5f;
+
+  font-family: ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono",
+    Menlo, monospace;
+  font-size: 16px;
+  line-height: 1.5;
+
+  white-space: pre;
+  tab-size: 2;
+}
+
+.component-code code {
+  padding: 0;
+
+  background: transparent;
+  border: 0;
+
+  color: #0b0c0c;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+
+  white-space: inherit;
+}
+
+// Inline code, for example:
+// Use data-options-show-selected-items="true"
+
+:not(pre) > code {
+  padding: 2px 5px;
+  font-size: 16px;
+  background: #f3f2f1;
+  border: 1px solid #b1b4b6;
+
+  color: #0b0c0c;
+
+  font-family: ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono",
+    Menlo, monospace;
+  font-size: 0.9em;
 }

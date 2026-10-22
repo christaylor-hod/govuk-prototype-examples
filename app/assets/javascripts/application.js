@@ -1,20 +1,43 @@
-//
-// For guidance on how to add JavaScript see:
-// https://prototype-kit.service.gov.uk/docs/adding-css-javascript-and-images
-//
-
-window.GOVUKPrototypeKit.documentReady(() => {
-
-
-/*
+/**
  * Reusable GOV.UK form enhancements
  *
- * .js-typeahead  - enhances a GOV.UK radio group into a searchable single-select
- * .js-multiselect - enhances a GOV.UK checkbox group into a searchable multi-select
+ * .js-typeahead
+ * Enhances a GOV.UK radio group into a searchable single-select.
  *
- * The original form controls remain in the page and are kept in sync, so forms
- * continue to submit their original names and values. Without JavaScript, the
- * standard GOV.UK controls remain available.
+ * .js-multiselect
+ * Enhances a GOV.UK checkbox group into a searchable multi-select.
+ *
+ * The original controls remain in the page and are kept in sync. Forms
+ * therefore continue to submit their original names and values. Without
+ * JavaScript, the standard GOV.UK controls remain available.
+ *
+ * Multiselect options:
+ *
+ * data-options-search-label
+ * Sets the visible label for the search input. Default: "Search".
+ *
+ * data-options-search-placeholder
+ * Sets the placeholder for the search input. Default: "Search".
+ *
+ * data-options-show-selected-items
+ * Shows a list of selected items when set to "true". Default: false.
+ *
+ * data-options-show-dropdown-arrow
+ * Shows a button for opening and closing the options. Default: false.
+ *
+ * data-options-show-dropdown-list-on-focus
+ * Opens the options when the search input receives focus. Default: false.
+ *
+ * Existing multiselect options:
+ *
+ * data-multiselect-sections
+ * Groups options using their data-section values when set to "true".
+ *
+ * data-multiselect-search
+ * Hides the search input and uses a filter-style trigger when set to "false".
+ *
+ * data-multiselect-trigger
+ * Sets the default text for the no-search filter trigger. Default: "All".
  */
 
 ;(function () {
@@ -99,8 +122,11 @@ window.GOVUKPrototypeKit.documentReady(() => {
     var clearSearch = document.createElement('button')
     clearSearch.className = 'typeahead__clear-search'
     clearSearch.type = 'button'
-    clearSearch.setAttribute('aria-label', 'Clear search and selected option')
-    clearSearch.innerHTML = '&times;'
+    clearSearch.setAttribute(
+      'aria-label',
+      'Clear search and selected option'
+    )
+    clearSearch.innerHTML = '×'
 
     var results = document.createElement('div')
     results.className = 'typeahead__results'
@@ -109,8 +135,10 @@ window.GOVUKPrototypeKit.documentReady(() => {
 
     searchContainer.appendChild(search)
     searchContainer.appendChild(clearSearch)
+
     searchGroup.appendChild(searchLabel)
     searchGroup.appendChild(searchContainer)
+
     wrapper.appendChild(searchGroup)
     wrapper.appendChild(results)
 
@@ -127,9 +155,11 @@ window.GOVUKPrototypeKit.documentReady(() => {
 
     function selectItem(item) {
       clearSelection()
+
       item.selected = true
       item.originalControl.checked = true
       dispatchChange(item.originalControl)
+
       search.value = item.text
       setClearButtonVisibility(clearSearch, search)
       closeResults()
@@ -137,7 +167,9 @@ window.GOVUKPrototypeKit.documentReady(() => {
 
     function filteredItems() {
       var term = search.value.trim().toLowerCase()
+
       if (!term) return items
+
       return items.filter(function (item) {
         return item.text.toLowerCase().includes(term)
       })
@@ -155,12 +187,14 @@ window.GOVUKPrototypeKit.documentReady(() => {
 
     function renderResults() {
       var matches = filteredItems()
+
       results.innerHTML = ''
 
       if (!matches.length) {
         var noResults = document.createElement('p')
         noResults.className = 'govuk-body-s typeahead__no-results'
         noResults.textContent = 'No matching results'
+
         results.appendChild(noResults)
         openResults()
         return
@@ -171,6 +205,7 @@ window.GOVUKPrototypeKit.documentReady(() => {
 
       matches.forEach(function (item, index) {
         var id = componentId + '-option-' + index
+
         var row = document.createElement('div')
         row.className = 'govuk-radios__item'
 
@@ -200,6 +235,7 @@ window.GOVUKPrototypeKit.documentReady(() => {
     }
 
     search.addEventListener('focus', renderResults)
+
     search.addEventListener('input', function () {
       setClearButtonVisibility(clearSearch, search)
       renderResults()
@@ -207,6 +243,7 @@ window.GOVUKPrototypeKit.documentReady(() => {
 
     clearSearch.addEventListener('click', function () {
       clearSelection()
+
       search.value = ''
       setClearButtonVisibility(clearSearch, search)
       renderResults()
@@ -214,18 +251,25 @@ window.GOVUKPrototypeKit.documentReady(() => {
     })
 
     search.addEventListener('keydown', function (event) {
-      if (event.key === 'Escape') closeResults()
+      if (event.key === 'Escape') {
+        closeResults()
+      }
     })
 
     document.addEventListener('click', function (event) {
-      if (!wrapper.contains(event.target)) closeResults()
+      if (!wrapper.contains(event.target)) {
+        closeResults()
+      }
     })
 
     var initiallySelected = items.find(function (item) {
       return item.selected
     })
 
-    if (initiallySelected) search.value = initiallySelected.text
+    if (initiallySelected) {
+      search.value = initiallySelected.text
+    }
+
     setClearButtonVisibility(clearSearch, search)
   }
 
@@ -245,19 +289,45 @@ window.GOVUKPrototypeKit.documentReady(() => {
     source.dataset.enhanced = 'true'
 
     var componentId = uniqueId('multiselect')
-    var displayMode = source.dataset.multiselectDisplay || 'inline'
-    var useSections = source.dataset.multiselectSections === 'true'
-    var showSearch = source.dataset.multiselectSearch !== 'false'
-    var showSelected = source.dataset.multiselectSelected !== 'false'
-    var placeholder = source.dataset.multiselectPlaceholder || 'Search'
-    var searchLabelText = source.dataset.multiselectLabel || 'Search'
-    var defaultTriggerText = source.dataset.multiselectTrigger || 'All'
-    var isDropdown = displayMode === 'dropdown' || displayMode === 'dropdown-arrow'
-    var opensWithArrow = displayMode === 'dropdown-arrow'
 
+    var useSections =
+      source.dataset.multiselectSections === 'true'
+
+    var showSearch =
+      source.dataset.multiselectSearch !== 'false'
+
+    var showSelectedItems =
+      source.dataset.optionsShowSelectedItems === 'true'
+
+    var showDropdownArrow =
+      source.dataset.optionsShowDropdownArrow !== 'false'
+
+    var showDropdownListOnFocus =
+      source.dataset.optionsShowDropdownListOnFocus === 'true'
+
+    var placeholder =
+      source.dataset.optionsSearchPlaceholder || 'Search'
+
+    var searchLabelText =
+      source.dataset.optionsSearchLabel || 'Search'
+
+    var defaultTriggerText =
+      source.dataset.multiselectTrigger || 'All'
+
+    /*
+     * The options behave as a dropdown. They are initially hidden and can be
+     * opened by typing, focusing the search input where configured, selecting
+     * the arrow where configured, or using the no-search trigger.
+     */
+    var isDropdown = true
+
+    /*
+     * Without a search input, the filter trigger becomes the control used to
+     * open and close the list. Search-specific options do not apply.
+     */
     if (!showSearch) {
-      isDropdown = true
-      opensWithArrow = true
+      showDropdownArrow = false
+      showDropdownListOnFocus = false
     }
 
     var items = []
@@ -301,11 +371,15 @@ window.GOVUKPrototypeKit.documentReady(() => {
     })
 
     var wrapper = document.createElement('div')
-    wrapper.className = 'multiselect'
+    wrapper.className = 'multiselect multiselect--dropdown'
 
-    if (isDropdown) wrapper.classList.add('multiselect--dropdown')
-    if (opensWithArrow) wrapper.classList.add('multiselect--dropdown-arrow')
-    if (!showSearch) wrapper.classList.add('multiselect--no-search')
+    if (showDropdownArrow) {
+      wrapper.classList.add('multiselect--dropdown-arrow')
+    }
+
+    if (!showSearch) {
+      wrapper.classList.add('multiselect--no-search')
+    }
 
     var selectedContainer = document.createElement('div')
     selectedContainer.className = 'multiselect__selected'
@@ -314,7 +388,8 @@ window.GOVUKPrototypeKit.documentReady(() => {
     controlContainer.className = 'multiselect__control'
 
     var searchGroup = document.createElement('div')
-    searchGroup.className = 'govuk-form-group multiselect__search-group'
+    searchGroup.className =
+      'govuk-form-group multiselect__search-group'
 
     var searchLabel = document.createElement('label')
     searchLabel.className = 'govuk-label'
@@ -337,26 +412,35 @@ window.GOVUKPrototypeKit.documentReady(() => {
     clearSearch.className = 'multiselect__clear-search'
     clearSearch.type = 'button'
     clearSearch.setAttribute('aria-label', 'Clear search')
-    clearSearch.innerHTML = '&times;'
+    clearSearch.innerHTML = '×'
 
     var dropdownToggle = document.createElement('button')
     dropdownToggle.className = 'multiselect__dropdown-toggle'
     dropdownToggle.type = 'button'
     dropdownToggle.setAttribute('aria-label', 'Show options')
     dropdownToggle.setAttribute('aria-expanded', 'false')
+    dropdownToggle.setAttribute(
+      'aria-controls',
+      componentId + '-results'
+    )
 
     var filterTrigger = document.createElement('button')
     filterTrigger.className = 'multiselect__filter-trigger'
     filterTrigger.type = 'button'
     filterTrigger.setAttribute('aria-expanded', 'false')
-    filterTrigger.setAttribute('aria-controls', componentId + '-results')
+    filterTrigger.setAttribute(
+      'aria-controls',
+      componentId + '-results'
+    )
 
     var filterTriggerText = document.createElement('span')
-    filterTriggerText.className = 'multiselect__filter-trigger-text'
+    filterTriggerText.className =
+      'multiselect__filter-trigger-text'
     filterTriggerText.textContent = defaultTriggerText
 
     var filterTriggerChevron = document.createElement('span')
-    filterTriggerChevron.className = 'multiselect__filter-trigger-chevron'
+    filterTriggerChevron.className =
+      'multiselect__filter-trigger-chevron'
     filterTriggerChevron.setAttribute('aria-hidden', 'true')
 
     filterTrigger.appendChild(filterTriggerText)
@@ -365,14 +449,20 @@ window.GOVUKPrototypeKit.documentReady(() => {
     var results = document.createElement('div')
     results.className = 'multiselect__results'
     results.id = componentId + '-results'
-    if (isDropdown) results.hidden = true
+    results.hidden = true
 
-    if (showSelected) wrapper.appendChild(selectedContainer)
+    if (showSelectedItems) {
+      wrapper.appendChild(selectedContainer)
+    }
 
     if (showSearch) {
       searchContainer.appendChild(search)
       searchContainer.appendChild(clearSearch)
-      if (opensWithArrow) searchContainer.appendChild(dropdownToggle)
+
+      if (showDropdownArrow) {
+        searchContainer.appendChild(dropdownToggle)
+      }
+
       searchGroup.appendChild(searchLabel)
       searchGroup.appendChild(searchContainer)
       controlContainer.appendChild(searchGroup)
@@ -388,11 +478,18 @@ window.GOVUKPrototypeKit.documentReady(() => {
     if (otherItem && otherItem.itemWrapper) {
       var otherContainer = document.createElement('div')
       otherContainer.className = 'multiselect__other'
+
       var otherGroup = document.createElement('div')
-      otherGroup.className = 'govuk-checkboxes govuk-checkboxes--small'
+      otherGroup.className =
+        'govuk-checkboxes govuk-checkboxes--small'
+
       otherGroup.appendChild(otherItem.itemWrapper)
       otherContainer.appendChild(otherGroup)
-      if (otherItem.conditional) otherContainer.appendChild(otherItem.conditional)
+
+      if (otherItem.conditional) {
+        otherContainer.appendChild(otherItem.conditional)
+      }
+
       wrapper.appendChild(otherContainer)
     }
 
@@ -410,21 +507,27 @@ window.GOVUKPrototypeKit.documentReady(() => {
     }
 
     function updateClearButton() {
-      if (showSearch) setClearButtonVisibility(clearSearch, search)
+      if (showSearch) {
+        setClearButtonVisibility(clearSearch, search)
+      }
     }
 
     function updateFilterTrigger() {
       if (showSearch) return
 
       var selected = selectedItems()
+
       if (!selected.length) {
         filterTriggerText.textContent = defaultTriggerText
       } else if (selected.length <= 2) {
         filterTriggerText.textContent = selected
-          .map(function (item) { return item.text })
+          .map(function (item) {
+            return item.text
+          })
           .join(', ')
       } else {
-        filterTriggerText.textContent = selected.length + ' selected'
+        filterTriggerText.textContent =
+          selected.length + ' selected'
       }
 
       filterTrigger.classList.toggle(
@@ -434,13 +537,14 @@ window.GOVUKPrototypeKit.documentReady(() => {
     }
 
     function renderSelectedItems() {
-      if (!showSelected) return
+      if (!showSelectedItems) return
 
       selectedContainer.innerHTML = ''
 
       var heading = document.createElement('h3')
       heading.className = 'govuk-heading-s'
       heading.textContent = 'Selected items'
+
       selectedContainer.appendChild(heading)
 
       var selected = selectedItems()
@@ -449,12 +553,14 @@ window.GOVUKPrototypeKit.documentReady(() => {
         var none = document.createElement('p')
         none.className = 'govuk-body-s'
         none.textContent = 'None'
+
         selectedContainer.appendChild(none)
         return
       }
 
       var list = document.createElement('ul')
-      list.className = 'govuk-list multiselect__selected-list'
+      list.className =
+        'govuk-list multiselect__selected-list'
 
       selected.forEach(function (item) {
         var row = document.createElement('li')
@@ -467,7 +573,10 @@ window.GOVUKPrototypeKit.documentReady(() => {
         remove.className = 'govuk-link multiselect__remove'
         remove.type = 'button'
         remove.textContent = 'Remove'
-        remove.setAttribute('aria-label', 'Remove ' + item.text)
+        remove.setAttribute(
+          'aria-label',
+          'Remove ' + item.text
+        )
 
         remove.addEventListener('click', function () {
           item.selected = false
@@ -486,25 +595,45 @@ window.GOVUKPrototypeKit.documentReady(() => {
     }
 
     function openResults() {
-      if (!isDropdown) return
       results.hidden = false
       wrapper.classList.add('multiselect--open')
-      if (showSearch) search.setAttribute('aria-expanded', 'true')
-      if (opensWithArrow && showSearch) {
-        dropdownToggle.setAttribute('aria-expanded', 'true')
+
+      if (showSearch) {
+        search.setAttribute('aria-expanded', 'true')
       }
-      if (!showSearch) filterTrigger.setAttribute('aria-expanded', 'true')
+
+      if (showDropdownArrow && showSearch) {
+        dropdownToggle.setAttribute('aria-expanded', 'true')
+        dropdownToggle.setAttribute(
+          'aria-label',
+          'Hide options'
+        )
+      }
+
+      if (!showSearch) {
+        filterTrigger.setAttribute('aria-expanded', 'true')
+      }
     }
 
     function closeResults() {
-      if (!isDropdown) return
       results.hidden = true
       wrapper.classList.remove('multiselect--open')
-      if (showSearch) search.setAttribute('aria-expanded', 'false')
-      if (opensWithArrow && showSearch) {
-        dropdownToggle.setAttribute('aria-expanded', 'false')
+
+      if (showSearch) {
+        search.setAttribute('aria-expanded', 'false')
       }
-      if (!showSearch) filterTrigger.setAttribute('aria-expanded', 'false')
+
+      if (showDropdownArrow && showSearch) {
+        dropdownToggle.setAttribute('aria-expanded', 'false')
+        dropdownToggle.setAttribute(
+          'aria-label',
+          'Show options'
+        )
+      }
+
+      if (!showSearch) {
+        filterTrigger.setAttribute('aria-expanded', 'false')
+      }
     }
 
     function toggleResults() {
@@ -517,60 +646,77 @@ window.GOVUKPrototypeKit.documentReady(() => {
     }
 
     function buildOption(item, index, idPrefix) {
-  var id = componentId + '-' + idPrefix + '-' + index
+      var id =
+        componentId + '-' + idPrefix + '-' + index
 
-  var row = document.createElement('div')
-  row.className = 'govuk-checkboxes__item'
+      var row = document.createElement('div')
+      row.className = 'govuk-checkboxes__item'
 
-  var input = document.createElement('input')
-  input.className = 'govuk-checkboxes__input'
-  input.id = id
-  input.type = 'checkbox'
-  input.checked = item.selected
+      var input = document.createElement('input')
+      input.className = 'govuk-checkboxes__input'
+      input.id = id
+      input.type = 'checkbox'
+      input.checked = item.selected
 
-  var label = document.createElement('label')
-  label.className = 'govuk-label govuk-checkboxes__label'
-  label.htmlFor = id
-  label.textContent = item.text
+      var label = document.createElement('label')
+      label.className =
+        'govuk-label govuk-checkboxes__label'
+      label.htmlFor = id
+      label.textContent = item.text
 
-  input.addEventListener('change', function () {
-    item.selected = input.checked
-    syncOriginal(item)
-    renderSelectedItems()
-    updateFilterTrigger()
+      input.addEventListener('change', function () {
+        item.selected = input.checked
+        syncOriginal(item)
+        renderSelectedItems()
+        updateFilterTrigger()
 
-    // Keep the existing results in place so keyboard focus remains
-    // on the checkbox the user has just selected.
-  })
+        /*
+         * Do not call renderResults() here. Rebuilding the results would
+         * remove the focused checkbox and cause keyboard focus to be lost.
+         */
+      })
 
-  row.appendChild(input)
-  row.appendChild(label)
+      row.appendChild(input)
+      row.appendChild(label)
 
-  return row
-}
+      return row
+    }
 
     function renderResults() {
-      var term = showSearch ? search.value.trim().toLowerCase() : ''
+      var term = showSearch
+        ? search.value.trim().toLowerCase()
+        : ''
+
       var visible = items.filter(function (item) {
-        return !term || item.text.toLowerCase().includes(term)
+        return (
+          !term ||
+          item.text.toLowerCase().includes(term)
+        )
       })
 
       results.innerHTML = ''
 
       if (!visible.length) {
         var noResults = document.createElement('p')
-        noResults.className = 'govuk-body-s multiselect__no-results'
+        noResults.className =
+          'govuk-body-s multiselect__no-results'
         noResults.textContent = 'No matching results'
+
         results.appendChild(noResults)
         return
       }
 
       if (!useSections) {
         var group = document.createElement('div')
-        group.className = 'govuk-checkboxes govuk-checkboxes--small'
+        group.className =
+          'govuk-checkboxes govuk-checkboxes--small'
+
         visible.forEach(function (item, index) {
-          group.appendChild(buildOption(item, index, 'option'))
+          group.appendChild(
+            buildOption(item, index, 'option')
+          )
         })
+
         results.appendChild(group)
         return
       }
@@ -580,25 +726,34 @@ window.GOVUKPrototypeKit.documentReady(() => {
 
       visible.forEach(function (item) {
         var section = item.section || 'Other'
+
         if (!grouped[section]) {
           grouped[section] = []
           order.push(section)
         }
+
         grouped[section].push(item)
       })
 
       order.forEach(function (section, sectionIndex) {
         var heading = document.createElement('h3')
-        heading.className = 'govuk-heading-s multiselect__section-heading'
+        heading.className =
+          'govuk-heading-s multiselect__section-heading'
         heading.textContent = section
+
         results.appendChild(heading)
 
         var group = document.createElement('div')
-        group.className = 'govuk-checkboxes govuk-checkboxes--small'
+        group.className =
+          'govuk-checkboxes govuk-checkboxes--small'
 
         grouped[section].forEach(function (item, itemIndex) {
           group.appendChild(
-            buildOption(item, itemIndex, 'section-' + sectionIndex)
+            buildOption(
+              item,
+              itemIndex,
+              'section-' + sectionIndex
+            )
           )
         })
 
@@ -606,10 +761,17 @@ window.GOVUKPrototypeKit.documentReady(() => {
       })
     }
 
-    if (otherItem && otherItem.originalControl && otherItem.conditional) {
+    if (
+      otherItem &&
+      otherItem.originalControl &&
+      otherItem.conditional
+    ) {
       function updateOtherConditional() {
-        var checked = otherItem.originalControl.checked
+        var checked =
+          otherItem.originalControl.checked
+
         otherItem.conditional.hidden = !checked
+
         otherItem.conditional.classList.toggle(
           'govuk-checkboxes__conditional--hidden',
           !checked
@@ -620,12 +782,13 @@ window.GOVUKPrototypeKit.documentReady(() => {
         'change',
         updateOtherConditional
       )
+
       updateOtherConditional()
     }
 
     if (showSearch) {
       search.addEventListener('focus', function () {
-        if (isDropdown && !opensWithArrow) {
+        if (showDropdownListOnFocus) {
           renderResults()
           openResults()
         }
@@ -634,18 +797,26 @@ window.GOVUKPrototypeKit.documentReady(() => {
       search.addEventListener('input', function () {
         updateClearButton()
         renderResults()
-        if (isDropdown) openResults()
+        openResults()
       })
 
       clearSearch.addEventListener('click', function () {
+        var wasOpen = !results.hidden
+
         search.value = ''
         updateClearButton()
         renderResults()
-        if (isDropdown && !opensWithArrow) openResults()
+
+        if (wasOpen) {
+          openResults()
+        } else {
+          closeResults()
+        }
+
         search.focus()
       })
 
-      if (opensWithArrow) {
+      if (showDropdownArrow) {
         dropdownToggle.addEventListener('click', function () {
           toggleResults()
           search.focus()
@@ -653,26 +824,37 @@ window.GOVUKPrototypeKit.documentReady(() => {
       }
 
       search.addEventListener('keydown', function (event) {
-        if (event.key === 'Escape') closeResults()
+        if (event.key === 'Escape') {
+          closeResults()
+        }
       })
     } else {
-      filterTrigger.addEventListener('click', toggleResults)
-      filterTrigger.addEventListener('keydown', function (event) {
-        if (event.key === 'Escape') closeResults()
-      })
+      filterTrigger.addEventListener(
+        'click',
+        toggleResults
+      )
+
+      filterTrigger.addEventListener(
+        'keydown',
+        function (event) {
+          if (event.key === 'Escape') {
+            closeResults()
+          }
+        }
+      )
     }
 
     document.addEventListener('click', function (event) {
-      if (isDropdown && !wrapper.contains(event.target)) closeResults()
+      if (
+        isDropdown &&
+        !wrapper.contains(event.target)
+      ) {
+        closeResults()
+      }
     })
 
     renderSelectedItems()
     updateFilterTrigger()
     updateClearButton()
-    if (!isDropdown) renderResults()
   }
 })()
-
-
-
-})
